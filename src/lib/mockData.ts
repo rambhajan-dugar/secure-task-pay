@@ -1,0 +1,188 @@
+import { Task, User, EscrowTransaction, TaskCategory, TaskStatus, PaymentStatus } from '@/types';
+
+export const mockUsers: User[] = [
+  {
+    id: 'user-1',
+    email: 'john@example.com',
+    name: 'John Doe',
+    role: 'task_giver',
+    tasksCompleted: 0,
+    rating: 4.8,
+    totalEarnings: 0,
+    createdAt: new Date('2024-01-15'),
+  },
+  {
+    id: 'user-2',
+    email: 'jane@example.com',
+    name: 'Jane Smith',
+    role: 'task_doer',
+    tasksCompleted: 45,
+    rating: 4.9,
+    totalEarnings: 125000,
+    createdAt: new Date('2024-02-01'),
+  },
+  {
+    id: 'user-3',
+    email: 'raj@example.com',
+    name: 'Raj Patel',
+    role: 'task_doer',
+    tasksCompleted: 8,
+    rating: 4.5,
+    totalEarnings: 32000,
+    createdAt: new Date('2024-03-10'),
+  },
+];
+
+export const mockTasks: Task[] = [
+  {
+    id: 'TASK-001',
+    title: 'Design a Mobile App UI',
+    description: 'Create a complete UI design for a fitness tracking mobile app. Include at least 10 screens: onboarding, home dashboard, workout tracking, progress charts, profile, settings, and notifications. Deliverables: Figma file with all screens and a basic design system.',
+    category: 'design',
+    reward: 15000,
+    deadline: new Date('2024-12-30'),
+    status: 'open',
+    giverId: 'user-1',
+    giverName: 'John Doe',
+    createdAt: new Date('2024-12-20'),
+  },
+  {
+    id: 'TASK-002',
+    title: 'Write SEO Blog Articles',
+    description: 'Write 5 SEO-optimized blog articles (1500-2000 words each) on cryptocurrency and blockchain technology for beginners. Topics will be provided. Each article must include proper headings, meta descriptions, and internal linking suggestions.',
+    category: 'writing',
+    reward: 8000,
+    deadline: new Date('2024-12-28'),
+    status: 'accepted',
+    giverId: 'user-1',
+    giverName: 'John Doe',
+    doerId: 'user-2',
+    doerName: 'Jane Smith',
+    createdAt: new Date('2024-12-18'),
+    acceptedAt: new Date('2024-12-19'),
+  },
+  {
+    id: 'TASK-003',
+    title: 'Develop React Dashboard',
+    description: 'Build a responsive admin dashboard using React and Tailwind CSS. Features: user management table with CRUD operations, analytics charts, notification system, and dark/light mode toggle. Must be production-ready with proper error handling.',
+    category: 'development',
+    reward: 45000,
+    deadline: new Date('2025-01-15'),
+    status: 'in_progress',
+    giverId: 'user-1',
+    giverName: 'John Doe',
+    doerId: 'user-2',
+    doerName: 'Jane Smith',
+    createdAt: new Date('2024-12-15'),
+    acceptedAt: new Date('2024-12-16'),
+  },
+  {
+    id: 'TASK-004',
+    title: 'Data Entry - Product Catalog',
+    description: 'Enter 500 products into our e-commerce database. Each product requires: name, description, price, category, SKU, and at least 3 images. Data will be provided in Excel format. Must maintain 100% accuracy.',
+    category: 'data_entry',
+    reward: 5000,
+    deadline: new Date('2024-12-25'),
+    status: 'submitted',
+    giverId: 'user-1',
+    giverName: 'John Doe',
+    doerId: 'user-3',
+    doerName: 'Raj Patel',
+    createdAt: new Date('2024-12-10'),
+    acceptedAt: new Date('2024-12-11'),
+    submittedAt: new Date('2024-12-21'),
+  },
+  {
+    id: 'TASK-005',
+    title: 'Video Editing - YouTube Series',
+    description: 'Edit 10 YouTube videos (10-15 min each) for a tech review channel. Include intro/outro animations, lower thirds, background music, and color grading. Raw footage will be provided. Expected turnaround: 2 videos per week.',
+    category: 'video',
+    reward: 25000,
+    deadline: new Date('2025-01-20'),
+    status: 'open',
+    giverId: 'user-1',
+    giverName: 'John Doe',
+    createdAt: new Date('2024-12-19'),
+  },
+];
+
+export const mockEscrowTransactions: EscrowTransaction[] = [
+  {
+    id: 'ESC-001',
+    taskId: 'TASK-002',
+    giverId: 'user-1',
+    doerId: 'user-2',
+    grossAmount: 8000,
+    platformFee: 1200,
+    feePercentage: 15,
+    netPayout: 6800,
+    status: 'in_escrow',
+    createdAt: new Date('2024-12-19'),
+    autoReleaseAt: new Date('2024-12-29'),
+  },
+  {
+    id: 'ESC-002',
+    taskId: 'TASK-003',
+    giverId: 'user-1',
+    doerId: 'user-2',
+    grossAmount: 45000,
+    platformFee: 4500,
+    feePercentage: 10,
+    netPayout: 40500,
+    status: 'in_escrow',
+    createdAt: new Date('2024-12-16'),
+    autoReleaseAt: new Date('2025-01-16'),
+  },
+  {
+    id: 'ESC-003',
+    taskId: 'TASK-004',
+    giverId: 'user-1',
+    doerId: 'user-3',
+    grossAmount: 5000,
+    platformFee: 1000,
+    feePercentage: 20,
+    netPayout: 4000,
+    status: 'in_escrow',
+    createdAt: new Date('2024-12-11'),
+    autoReleaseAt: new Date('2024-12-22'),
+  },
+];
+
+export const taskCategories: { value: TaskCategory; label: string; icon: string }[] = [
+  { value: 'design', label: 'Design', icon: '🎨' },
+  { value: 'development', label: 'Development', icon: '💻' },
+  { value: 'writing', label: 'Writing', icon: '✍️' },
+  { value: 'marketing', label: 'Marketing', icon: '📢' },
+  { value: 'data_entry', label: 'Data Entry', icon: '📊' },
+  { value: 'research', label: 'Research', icon: '🔍' },
+  { value: 'translation', label: 'Translation', icon: '🌐' },
+  { value: 'video', label: 'Video', icon: '🎬' },
+  { value: 'audio', label: 'Audio', icon: '🎵' },
+  { value: 'other', label: 'Other', icon: '📌' },
+];
+
+export const getStatusColor = (status: TaskStatus): string => {
+  const colors: Record<TaskStatus, string> = {
+    open: 'info',
+    accepted: 'warning',
+    in_progress: 'warning',
+    submitted: 'info',
+    under_review: 'warning',
+    approved: 'success',
+    disputed: 'destructive',
+    completed: 'success',
+    cancelled: 'secondary',
+  };
+  return colors[status];
+};
+
+export const getPaymentStatusVariant = (status: PaymentStatus): 'pending' | 'escrow' | 'released' | 'disputed' | 'refunded' => {
+  const variants: Record<PaymentStatus, 'pending' | 'escrow' | 'released' | 'disputed' | 'refunded'> = {
+    pending: 'pending',
+    in_escrow: 'escrow',
+    released: 'released',
+    disputed: 'disputed',
+    refunded: 'refunded',
+  };
+  return variants[status];
+};
