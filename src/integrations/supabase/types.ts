@@ -14,16 +14,478 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      disputes: {
+        Row: {
+          created_at: string
+          description: string | null
+          escrow_id: string | null
+          id: string
+          raised_by_id: string | null
+          raised_by_role: string
+          reason: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_in_favor_of: string | null
+          status: string
+          task_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          escrow_id?: string | null
+          id?: string
+          raised_by_id?: string | null
+          raised_by_role: string
+          reason: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_in_favor_of?: string | null
+          status?: string
+          task_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          escrow_id?: string | null
+          id?: string
+          raised_by_id?: string | null
+          raised_by_role?: string
+          reason?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_in_favor_of?: string | null
+          status?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          relationship: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          relationship?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          relationship?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      escrow_transactions: {
+        Row: {
+          auto_release_at: string | null
+          created_at: string
+          doer_id: string | null
+          fee_percentage: number
+          gross_amount: number
+          id: string
+          net_payout: number
+          platform_fee: number
+          poster_id: string | null
+          released_at: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          task_id: string
+        }
+        Insert: {
+          auto_release_at?: string | null
+          created_at?: string
+          doer_id?: string | null
+          fee_percentage: number
+          gross_amount: number
+          id?: string
+          net_payout: number
+          platform_fee: number
+          poster_id?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          task_id: string
+        }
+        Update: {
+          auto_release_at?: string | null
+          created_at?: string
+          doer_id?: string | null
+          fee_percentage?: number
+          gross_amount?: number
+          id?: string
+          net_payout?: number
+          platform_fee?: number
+          poster_id?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          id: string
+          is_verified: boolean | null
+          phone: string | null
+          preferred_language: string | null
+          rating: number | null
+          tasks_completed: number | null
+          total_earnings: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          is_verified?: boolean | null
+          phone?: string | null
+          preferred_language?: string | null
+          rating?: number | null
+          tasks_completed?: number | null
+          total_earnings?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_verified?: boolean | null
+          phone?: string | null
+          preferred_language?: string | null
+          rating?: number | null
+          tasks_completed?: number | null
+          total_earnings?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sos_audio_recordings: {
+        Row: {
+          duration_seconds: number | null
+          id: string
+          is_simulated: boolean | null
+          recorded_at: string
+          sos_event_id: string
+          storage_path: string | null
+        }
+        Insert: {
+          duration_seconds?: number | null
+          id?: string
+          is_simulated?: boolean | null
+          recorded_at?: string
+          sos_event_id: string
+          storage_path?: string | null
+        }
+        Update: {
+          duration_seconds?: number | null
+          id?: string
+          is_simulated?: boolean | null
+          recorded_at?: string
+          sos_event_id?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_audio_recordings_sos_event_id_fkey"
+            columns: ["sos_event_id"]
+            isOneToOne: false
+            referencedRelation: "sos_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sos_events: {
+        Row: {
+          current_latitude: number | null
+          current_longitude: number | null
+          emergency_contact_notified: boolean | null
+          id: string
+          initial_latitude: number
+          initial_longitude: number
+          is_silent_mode: boolean | null
+          last_location_update: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          responded_at: string | null
+          safety_team_member_id: string | null
+          safety_team_notified: boolean | null
+          safety_team_notified_at: string | null
+          simulated_emergency_call: string | null
+          status: Database["public"]["Enums"]["sos_status"]
+          task_id: string | null
+          triggered_at: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          current_latitude?: number | null
+          current_longitude?: number | null
+          emergency_contact_notified?: boolean | null
+          id?: string
+          initial_latitude: number
+          initial_longitude: number
+          is_silent_mode?: boolean | null
+          last_location_update?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          responded_at?: string | null
+          safety_team_member_id?: string | null
+          safety_team_notified?: boolean | null
+          safety_team_notified_at?: string | null
+          simulated_emergency_call?: string | null
+          status?: Database["public"]["Enums"]["sos_status"]
+          task_id?: string | null
+          triggered_at?: string
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          current_latitude?: number | null
+          current_longitude?: number | null
+          emergency_contact_notified?: boolean | null
+          id?: string
+          initial_latitude?: number
+          initial_longitude?: number
+          is_silent_mode?: boolean | null
+          last_location_update?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          responded_at?: string | null
+          safety_team_member_id?: string | null
+          safety_team_notified?: boolean | null
+          safety_team_notified_at?: string | null
+          simulated_emergency_call?: string | null
+          status?: Database["public"]["Enums"]["sos_status"]
+          task_id?: string | null
+          triggered_at?: string
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sos_location_history: {
+        Row: {
+          accuracy: number | null
+          id: string
+          latitude: number
+          longitude: number
+          recorded_at: string
+          sos_event_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          sos_event_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          sos_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_location_history_sos_event_id_fkey"
+            columns: ["sos_event_id"]
+            isOneToOne: false
+            referencedRelation: "sos_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          accepted_at: string | null
+          approved_at: string | null
+          auto_release_at: string | null
+          category: Database["public"]["Enums"]["task_category"]
+          created_at: string
+          deadline: string
+          description: string
+          doer_id: string | null
+          id: string
+          is_in_person: boolean | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          poster_id: string | null
+          reward_amount: number
+          status: Database["public"]["Enums"]["task_status"]
+          submitted_at: string | null
+          task_code: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          approved_at?: string | null
+          auto_release_at?: string | null
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string
+          deadline: string
+          description: string
+          doer_id?: string | null
+          id?: string
+          is_in_person?: boolean | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          poster_id?: string | null
+          reward_amount: number
+          status?: Database["public"]["Enums"]["task_status"]
+          submitted_at?: string | null
+          task_code?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          approved_at?: string | null
+          auto_release_at?: string | null
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string
+          deadline?: string
+          description?: string
+          doer_id?: string | null
+          id?: string
+          is_in_person?: boolean | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          poster_id?: string | null
+          reward_amount?: number
+          status?: Database["public"]["Enums"]["task_status"]
+          submitted_at?: string | null
+          task_code?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "task_poster" | "task_doer" | "admin" | "safety_team"
+      payment_status:
+        | "pending"
+        | "in_escrow"
+        | "released"
+        | "disputed"
+        | "refunded"
+      sos_status:
+        | "triggered"
+        | "safety_team_responded"
+        | "resolved"
+        | "escalated"
+      task_category:
+        | "design"
+        | "development"
+        | "writing"
+        | "marketing"
+        | "data_entry"
+        | "research"
+        | "translation"
+        | "video"
+        | "audio"
+        | "other"
+      task_status:
+        | "open"
+        | "accepted"
+        | "in_progress"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "disputed"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +612,44 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["task_poster", "task_doer", "admin", "safety_team"],
+      payment_status: [
+        "pending",
+        "in_escrow",
+        "released",
+        "disputed",
+        "refunded",
+      ],
+      sos_status: [
+        "triggered",
+        "safety_team_responded",
+        "resolved",
+        "escalated",
+      ],
+      task_category: [
+        "design",
+        "development",
+        "writing",
+        "marketing",
+        "data_entry",
+        "research",
+        "translation",
+        "video",
+        "audio",
+        "other",
+      ],
+      task_status: [
+        "open",
+        "accepted",
+        "in_progress",
+        "submitted",
+        "under_review",
+        "approved",
+        "disputed",
+        "completed",
+        "cancelled",
+      ],
+    },
   },
 } as const
