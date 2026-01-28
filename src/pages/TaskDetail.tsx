@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import FeeBreakdown from '@/components/shared/FeeBreakdown';
 import CountdownTimer from '@/components/shared/CountdownTimer';
 import EscrowStatusBadge from '@/components/shared/EscrowStatusBadge';
+import SOSButton from '@/components/safety/SOSButton';
 import { mockTasks, mockEscrowTransactions, taskCategories, getStatusColor } from '@/lib/mockData';
 import { formatCurrency } from '@/lib/feeCalculator';
 import { format } from 'date-fns';
@@ -20,17 +21,16 @@ import {
   User, 
   Clock, 
   CheckCircle, 
-  XCircle,
   AlertTriangle,
-  FileText,
   Send,
-  Shield
+  Shield,
+  MapPin
 } from 'lucide-react';
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, currentRole, profile } = useAuth();
   
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -58,10 +58,14 @@ const TaskDetail: React.FC = () => {
   }
 
   const statusVariant = getStatusColor(task.status) as any;
-  const isGiver = user?.role === 'task_giver';
-  const isDoer = user?.role === 'task_doer';
-  const isMyTask = isGiver && (task.giverId === user?.id || task.giverName === user?.name);
-  const isAssignedToMe = isDoer && (task.doerId === user?.id || task.doerName === user?.name);
+  const isGiver = currentRole === 'task_poster';
+  const isDoer = currentRole === 'task_doer';
+  const isMyTask = isGiver && task.giverName === profile?.full_name;
+  const isAssignedToMe = isDoer && task.doerName === profile?.full_name;
+  
+  // Show SOS button for in-person tasks when doer is working on it
+  const isInPersonTask = true; // Mock: assume all tasks can be in-person for demo
+  const showSOS = isAssignedToMe && ['accepted', 'in_progress'].includes(task.status) && isInPersonTask;
 
   const handleAcceptTask = () => {
     toast.success('Task accepted! The giver will be notified to fund escrow.');
@@ -133,6 +137,12 @@ const TaskDetail: React.FC = () => {
                     <Clock className="w-4 h-4" />
                     <span>Posted {format(task.createdAt, 'MMM dd')}</span>
                   </div>
+                  {isInPersonTask && (
+                    <div className="flex items-center gap-1 text-warning">
+                      <MapPin className="w-4 h-4" />
+                      <span>In-Person Task</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 rounded-lg bg-muted/50 border border-border">
@@ -140,6 +150,23 @@ const TaskDetail: React.FC = () => {
                   <p className="text-muted-foreground whitespace-pre-line">{task.description}</p>
                 </div>
               </div>
+
+              {/* SOS Safety Section for In-Person Tasks */}
+              {showSOS && (
+                <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="w-5 h-5 text-destructive" />
+                    <h2 className="text-lg font-semibold">Safety Tools</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    This is an in-person task. If you feel unsafe at any point, use the SOS button below.
+                  </p>
+                <SOSButton 
+                    taskId={task.id} 
+                    userRole="doer"
+                  />
+                </div>
+              )}
 
               {/* Escrow Info (for assigned tasks) */}
               {escrow && (
@@ -204,11 +231,11 @@ const TaskDetail: React.FC = () => {
                 </div>
 
                 {/* Fee Breakdown for Doers */}
-                {isDoer && user && (
+                {isDoer && profile && (
                   <div className="mb-6">
                     <FeeBreakdown 
                       grossAmount={task.reward} 
-                      tasksCompleted={user.tasksCompleted} 
+                      tasksCompleted={profile.tasks_completed || 0} 
                     />
                   </div>
                 )}
@@ -295,7 +322,7 @@ const TaskDetail: React.FC = () => {
           <div className="py-4">
             <FeeBreakdown 
               grossAmount={task.reward} 
-              tasksCompleted={user?.tasksCompleted || 0} 
+              tasksCompleted={profile?.tasks_completed || 0} 
             />
           </div>
           <DialogFooter>
