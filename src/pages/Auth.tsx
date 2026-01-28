@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AppRole } from '@/contexts/SupabaseAuthContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserRole } from '@/types';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Auth: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, signup, isAuthenticated } = useAuth();
+  const { signIn, signUp, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { language } = useLanguage();
   
   const [mode, setMode] = useState<'login' | 'signup'>(
     searchParams.get('mode') === 'signup' ? 'signup' : 'login'
   );
-  const [role, setRole] = useState<UserRole>(
-    (searchParams.get('role') as UserRole) || 'task_doer'
+  const [role, setRole] = useState<AppRole>(
+    (searchParams.get('role') as AppRole) || 'task_doer'
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,52 +30,103 @@ const Auth: React.FC = () => {
     name: '',
   });
 
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    name?: string;
+  }>({});
+
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading) {
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (mode === 'signup' && !formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setLoading(true);
+    setErrors({});
 
     try {
-      let success: boolean;
-      
       if (mode === 'login') {
-        success = await login(formData.email, formData.password, role);
+        await signIn(formData.email, formData.password);
+        toast.success('Welcome back!');
+        navigate('/dashboard');
       } else {
-        if (!formData.name.trim()) {
-          toast.error('Please enter your name');
-          setLoading(false);
-          return;
-        }
-        success = await signup(formData.email, formData.password, formData.name, role);
-      }
-
-      if (success) {
-        toast.success(mode === 'login' ? 'Welcome back!' : 'Account created successfully!');
+        await signUp(formData.email, formData.password, formData.name, role, language);
+        toast.success('Account created! You can now sign in.');
+        // Auto login after signup (since auto-confirm is enabled)
+        await signIn(formData.email, formData.password);
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error('Something went wrong. Please try again.');
+      const message = error instanceof Error ? error.message : 'Something went wrong';
+      
+      // Handle specific Supabase errors
+      if (message.includes('Invalid login credentials')) {
+        toast.error('Invalid email or password');
+      } else if (message.includes('User already registered')) {
+        toast.error('An account with this email already exists');
+        setMode('login');
+      } else if (message.includes('Email not confirmed')) {
+        toast.error('Please confirm your email before signing in');
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">K</span>
-            </div>
-            <span className="text-xl font-bold">kaam.com</span>
-          </Link>
+          <div className="flex items-center justify-between mb-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">K</span>
+              </div>
+              <span className="text-xl font-bold">kaam.com</span>
+            </Link>
+            <LanguageSelector variant="dropdown" />
+          </div>
 
           <h1 className="text-3xl font-bold mb-2">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
@@ -90,9 +143,9 @@ const Auth: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setRole('task_giver')}
+                onClick={() => setRole('task_poster')}
                 className={`p-4 rounded-xl border text-left transition-all ${
-                  role === 'task_giver'
+                  role === 'task_poster'
                     ? 'border-primary bg-primary/10'
                     : 'border-border hover:border-primary/50'
                 }`}
@@ -124,13 +177,14 @@ const Auth: React.FC = () => {
                   <Input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Your full name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="pl-10"
-                    required
+                    className={`pl-10 ${errors.name ? 'border-destructive' : ''}`}
+                    disabled={loading}
                   />
                 </div>
+                {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
               </div>
             )}
 
@@ -144,10 +198,11 @@ const Auth: React.FC = () => {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10"
-                  required
+                  className={`pl-10 ${errors.email ? 'border-destructive' : ''}`}
+                  disabled={loading}
                 />
               </div>
+              {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
             </div>
 
             <div>
@@ -160,24 +215,25 @@ const Auth: React.FC = () => {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pl-10 pr-10"
-                  required
-                  minLength={6}
+                  className={`pl-10 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  disabled={loading}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.password && <p className="text-destructive text-sm mt-1">{errors.password}</p>}
             </div>
 
             <Button type="submit" variant="hero" className="w-full" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   {mode === 'login' ? 'Signing in...' : 'Creating account...'}
                 </span>
               ) : (
@@ -193,8 +249,12 @@ const Auth: React.FC = () => {
             <p className="text-muted-foreground">
               {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
               <button
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                onClick={() => {
+                  setMode(mode === 'login' ? 'signup' : 'login');
+                  setErrors({});
+                }}
                 className="text-primary font-medium ml-1 hover:underline"
+                disabled={loading}
               >
                 {mode === 'login' ? 'Sign up' : 'Sign in'}
               </button>

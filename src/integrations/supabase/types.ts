@@ -171,6 +171,7 @@ export type Database = {
           total_earnings: number | null
           updated_at: string
           user_id: string
+          wallet_balance: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -185,6 +186,7 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id: string
+          wallet_balance?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -199,6 +201,7 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id?: string
+          wallet_balance?: number | null
         }
         Relationships: []
       }
@@ -345,6 +348,44 @@ export type Database = {
             columns: ["sos_event_id"]
             isOneToOne: false
             referencedRelation: "sos_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          attachments: string[] | null
+          created_at: string
+          id: string
+          message: string | null
+          submitted_by: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          submitted_by: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: string[] | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          submitted_by?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]

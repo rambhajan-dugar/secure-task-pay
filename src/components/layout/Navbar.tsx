@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -9,17 +9,36 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, Settings, Wallet } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Settings, Wallet, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/lib/feeCalculator';
+import { toast } from 'sonner';
 
 const Navbar: React.FC = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, signOut, profile, currentRole, switchRole } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
   };
+
+  const handleSwitchRole = async () => {
+    const newRole = currentRole === 'task_poster' ? 'task_doer' : 'task_poster';
+    try {
+      await switchRole(newRole);
+      toast.success(`Switched to ${newRole === 'task_poster' ? 'Task Giver' : 'Task Doer'} mode`);
+    } catch (error) {
+      toast.error('Failed to switch role');
+    }
+  };
+
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
+  const displayRole = currentRole === 'task_poster' ? 'Task Giver' : 'Task Doer';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -50,10 +69,10 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
               <>
-                {user.role === 'task_doer' && (
+                {currentRole === 'task_doer' && profile && (
                   <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20">
                     <Wallet className="w-4 h-4 text-success" />
-                    <span className="text-success font-medium">{formatCurrency(user.totalEarnings)}</span>
+                    <span className="text-success font-medium">{formatCurrency(profile.wallet_balance || 0)}</span>
                   </div>
                 )}
                 <DropdownMenu>
@@ -62,14 +81,14 @@ const Navbar: React.FC = () => {
                       <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
                         <User className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="hidden sm:inline">{user.name}</span>
+                      <span className="hidden sm:inline">{displayName}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-sm font-medium">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
-                      <p className="text-xs text-primary mt-1 capitalize">{user.role.replace('_', ' ')}</p>
+                      <p className="text-xs text-primary mt-1">{displayRole}</p>
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -77,6 +96,10 @@ const Navbar: React.FC = () => {
                         <LayoutDashboard className="w-4 h-4 mr-2" />
                         Dashboard
                       </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSwitchRole} className="cursor-pointer">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Switch to {currentRole === 'task_poster' ? 'Task Doer' : 'Task Giver'}
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/settings" className="cursor-pointer">

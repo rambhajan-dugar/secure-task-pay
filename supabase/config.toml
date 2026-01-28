@@ -1,1 +1,16 @@
 project_id = "iyhrfauanfziabiwlwte"
+
+[functions.tasks]
+verify_jwt = false
+
+[functions.escrow]
+verify_jwt = false
+
+[functions.auth]
+verify_jwt = false
+
+[functions.wallet]
+verify_jwt = false
+
+[functions.auto-release]
+verify_jwt = false
