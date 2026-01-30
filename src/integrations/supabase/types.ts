@@ -14,17 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           created_at: string
           description: string | null
+          doer_payout_amount: number | null
           escrow_id: string | null
           id: string
+          poster_refund_amount: number | null
           raised_by_id: string | null
           raised_by_role: string
           reason: string
           resolution_notes: string | null
+          resolution_type: string | null
           resolved_at: string | null
+          resolved_by: string | null
           resolved_in_favor_of: string | null
           status: string
           task_id: string
@@ -32,13 +75,17 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          doer_payout_amount?: number | null
           escrow_id?: string | null
           id?: string
+          poster_refund_amount?: number | null
           raised_by_id?: string | null
           raised_by_role: string
           reason: string
           resolution_notes?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           resolved_in_favor_of?: string | null
           status?: string
           task_id: string
@@ -46,13 +93,17 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          doer_payout_amount?: number | null
           escrow_id?: string | null
           id?: string
+          poster_refund_amount?: number | null
           raised_by_id?: string | null
           raised_by_role?: string
           reason?: string
           resolution_notes?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           resolved_in_favor_of?: string | null
           status?: string
           task_id?: string
@@ -157,6 +208,105 @@ export type Database = {
           },
         ]
       }
+      failed_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_type: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload: Json
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      idempotency_keys: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          key: string
+          request_hash: string
+          response: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          key: string
+          request_hash: string
+          response?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          key?: string
+          request_hash?: string
+          response?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_events: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -202,6 +352,30 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wallet_balance?: number | null
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          endpoint: string
+          id: string
+          identifier: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          identifier: string
+          request_count?: number
+          window_start?: string
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          identifier?: string
+          request_count?: number
+          window_start?: string
         }
         Relationships: []
       }
@@ -390,6 +564,50 @@ export type Database = {
           },
         ]
       }
+      task_events: {
+        Row: {
+          actor_id: string
+          actor_role: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          new_state: string | null
+          old_state: string | null
+          task_id: string
+        }
+        Insert: {
+          actor_id: string
+          actor_role: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          new_state?: string | null
+          old_state?: string | null
+          task_id: string
+        }
+        Update: {
+          actor_id?: string
+          actor_role?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          new_state?: string | null
+          old_state?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           accepted_at: string | null
@@ -459,6 +677,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_freezes: {
+        Row: {
+          frozen_at: string
+          frozen_by: string
+          id: string
+          reason: string
+          unfrozen_at: string | null
+          unfrozen_by: string | null
+          user_id: string
+        }
+        Insert: {
+          frozen_at?: string
+          frozen_by: string
+          id?: string
+          reason: string
+          unfrozen_at?: string | null
+          unfrozen_by?: string | null
+          user_id: string
+        }
+        Update: {
+          frozen_at?: string
+          frozen_by?: string
+          id?: string
+          reason?: string
+          unfrozen_at?: string | null
+          unfrozen_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -480,17 +728,110 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_events: {
+        Row: {
+          actor_id: string | null
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          escrow_id: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          escrow_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          escrow_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_events_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          _payload?: Json
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_user_frozen: { Args: { _user_id: string }; Returns: boolean }
+      log_task_event: {
+        Args: {
+          _actor_id: string
+          _actor_role: string
+          _event_type: string
+          _metadata?: Json
+          _new_state: string
+          _old_state: string
+          _task_id: string
+        }
+        Returns: string
+      }
+      log_wallet_event: {
+        Args: {
+          _actor_id?: string
+          _amount: number
+          _balance_after: number
+          _balance_before: number
+          _escrow_id?: string
+          _event_type: string
+          _metadata?: Json
+          _task_id?: string
+          _user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
