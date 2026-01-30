@@ -14,3 +14,21 @@ verify_jwt = false
 
 [functions.auto-release]
 verify_jwt = false
+
+[functions.v1-tasks]
+verify_jwt = false
+
+[functions.v1-escrow]
+verify_jwt = false
+
+[functions.v1-wallet]
+verify_jwt = false
+
+[functions.v1-auth]
+verify_jwt = false
+
+[functions.v1-admin]
+verify_jwt = false
+
+[functions.v1-auto-release]
+verify_jwt = false
