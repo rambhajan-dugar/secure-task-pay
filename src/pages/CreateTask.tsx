@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,11 @@ import { taskCategories } from '@/lib/mockData';
 import { TaskCategory } from '@/types';
 import { formatCurrency } from '@/lib/feeCalculator';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, Calendar, IndianRupee, FileText, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, IndianRupee, FileText, AlertCircle, Loader2 } from 'lucide-react';
 
 const CreateTask: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, currentRole } = useAuth();
   
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -28,11 +28,19 @@ const CreateTask: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (user?.role !== 'task_giver') {
+  if (currentRole !== 'task_poster') {
     return <Navigate to="/dashboard" replace />;
   }
 
