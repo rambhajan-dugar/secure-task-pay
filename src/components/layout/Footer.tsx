@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Phone, Mail } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -10,13 +11,23 @@ const Footer: React.FC = () => {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">K</span>
+                <span className="text-primary-foreground font-bold text-lg">N</span>
               </div>
-              <span className="text-xl font-bold">kaam.com</span>
+              <span className="text-xl font-bold">Nap-it</span>
             </div>
-            <p className="text-muted-foreground text-sm">
-              India's trusted task marketplace with secure escrow payments.
+            <p className="text-muted-foreground text-sm mb-4">
+              Get Things Done. Safely.
             </p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2">
+                <Phone className="w-4 h-4" />
+                +91 7439689645
+              </p>
+              <p className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                contactnapit@gmail.com
+              </p>
+            </div>
           </div>
 
           {/* Platform */}
@@ -26,7 +37,6 @@ const Footer: React.FC = () => {
               <li><Link to="/tasks" className="hover:text-foreground transition-colors">Browse Tasks</Link></li>
               <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">How It Works</Link></li>
               <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-              <li><Link to="/categories" className="hover:text-foreground transition-colors">Categories</Link></li>
             </ul>
           </div>
 
@@ -34,10 +44,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
               <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
               <li><Link to="/disputes" className="hover:text-foreground transition-colors">Dispute Resolution</Link></li>
               <li><Link to="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link></li>
+              <li><Link to="/safety" className="hover:text-foreground transition-colors">Safety Policy</Link></li>
             </ul>
           </div>
 
@@ -47,7 +57,6 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
               <li><Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link></li>
               <li><Link to="/escrow" className="hover:text-foreground transition-colors">Escrow Terms</Link></li>
             </ul>
           </div>
@@ -55,7 +64,7 @@ const Footer: React.FC = () => {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 kaam.com. All rights reserved.
+            © 2026 Nap-it. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground">Secured by</span>
