@@ -1,125 +1,120 @@
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * useApi hook - Wrapper around the production API client
+ * Provides React-friendly interface with loading states
+ */
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+import { useCallback, useState } from 'react';
+import { 
+  taskApi, 
+  walletApi, 
+  escrowApi, 
+  authApi,
+  ApiException,
+  type ApiErrorCode,
+  type TaskCreatePayload,
+  type WalletData,
+} from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
+
+interface UseApiState {
+  isLoading: boolean;
+  error: ApiErrorCode | null;
+}
+
+// Error messages for user-friendly display
+const ERROR_MESSAGES: Record<ApiErrorCode, string> = {
+  RATE_LIMITED: 'Too many requests. Please wait and try again.',
+  USER_FROZEN: 'Your account has been frozen. Contact support.',
+  INVALID_STATE: 'This action is not allowed in the current state.',
+  DUPLICATE_REQUEST: 'This request was already processed.',
+  UNAUTHORIZED: 'Please log in to continue.',
+  NOT_FOUND: 'The requested resource was not found.',
+  VALIDATION_ERROR: 'Please check your input and try again.',
+  INTERNAL_ERROR: 'Something went wrong. Please try again.',
+};
 
 export function useApi() {
-  const getAuthHeaders = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      throw new Error('Not authenticated');
+  const [state, setState] = useState<UseApiState>({
+    isLoading: false,
+    error: null,
+  });
+
+  const handleError = useCallback((error: unknown) => {
+    if (error instanceof ApiException) {
+      setState(prev => ({ ...prev, error: error.code }));
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: ERROR_MESSAGES[error.code] || error.message,
+      });
+      return error.code;
     }
-    return {
-      'Authorization': `Bearer ${session.access_token}`,
-      'Content-Type': 'application/json',
-      'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    };
+    setState(prev => ({ ...prev, error: 'INTERNAL_ERROR' }));
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description: 'An unexpected error occurred.',
+    });
+    return 'INTERNAL_ERROR' as ApiErrorCode;
   }, []);
 
-  const callFunction = useCallback(async <T = unknown>(
-    functionName: string,
-    path: string = '',
-    options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-      body?: unknown;
-      params?: Record<string, string>;
-    } = {}
-  ): Promise<T> => {
-    const { method = 'GET', body, params } = options;
-    
-    let url = `${SUPABASE_URL}/functions/v1/${functionName}${path}`;
-    
-    if (params) {
-      const searchParams = new URLSearchParams(params);
-      url += `?${searchParams.toString()}`;
+  const wrapCall = useCallback(async <T>(fn: () => Promise<T>): Promise<T | null> => {
+    setState({ isLoading: true, error: null });
+    try {
+      const result = await fn();
+      setState({ isLoading: false, error: null });
+      return result;
+    } catch (error) {
+      handleError(error);
+      setState(prev => ({ ...prev, isLoading: false }));
+      return null;
     }
+  }, [handleError]);
 
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'API request failed');
-    }
-
-    return data as T;
-  }, [getAuthHeaders]);
-
-  // Task API
+  // Task operations
   const tasks = {
-    create: (taskData: {
-      title: string;
-      description: string;
-      category?: string;
-      reward_amount: number;
-      deadline: string;
-      is_in_person?: boolean;
-      location_address?: string;
-      location_lat?: number;
-      location_lng?: number;
-    }) => callFunction('tasks', '', { method: 'POST', body: taskData }),
-
-    list: (params?: { status?: string; role?: 'poster' | 'doer'; category?: string }) =>
-      callFunction<{ tasks: unknown[] }>('tasks', '', { params }),
-
-    get: (taskId: string) =>
-      callFunction<{ task: unknown; escrow: unknown; submissions: unknown[] }>('tasks', `/${taskId}`),
-
-    accept: (taskId: string) =>
-      callFunction('tasks', `/${taskId}/accept`, { method: 'POST' }),
-
-    start: (taskId: string) =>
-      callFunction('tasks', `/${taskId}/start`, { method: 'POST' }),
-
-    submit: (taskId: string, data: { message?: string; attachments?: string[] }) =>
-      callFunction('tasks', `/${taskId}/submit`, { method: 'POST', body: data }),
-
-    approve: (taskId: string) =>
-      callFunction('tasks', `/${taskId}/approve`, { method: 'POST' }),
-
-    dispute: (taskId: string, data: { reason: string; description?: string }) =>
-      callFunction('tasks', `/${taskId}/dispute`, { method: 'POST', body: data }),
+    create: (data: TaskCreatePayload) => wrapCall(() => taskApi.create(data)),
+    list: (params?: { status?: string; role?: 'poster' | 'doer'; category?: string }) => 
+      wrapCall(() => taskApi.list(params)),
+    get: (taskId: string) => wrapCall(() => taskApi.get(taskId)),
+    accept: (taskId: string) => wrapCall(() => taskApi.accept(taskId)),
+    start: (taskId: string) => wrapCall(() => taskApi.start(taskId)),
+    submit: (taskId: string, data: { message?: string; attachments?: string[] }) => 
+      wrapCall(() => taskApi.submit(taskId, data)),
+    approve: (taskId: string) => wrapCall(() => taskApi.approve(taskId)),
+    dispute: (taskId: string, data: { reason: string; description?: string }) => 
+      wrapCall(() => taskApi.dispute(taskId, data)),
   };
 
-  // Escrow API
-  const escrow = {
-    list: (params?: { role?: 'poster' | 'doer'; status?: string }) =>
-      callFunction<{ transactions: unknown[] }>('escrow', '', { params }),
-
-    get: (escrowId: string) =>
-      callFunction('escrow', `/${escrowId}`),
-
-    release: (taskId: string) =>
-      callFunction('escrow', '/release', { method: 'POST', body: { task_id: taskId } }),
-  };
-
-  // Wallet API
+  // Wallet operations
   const wallet = {
-    get: () =>
-      callFunction<{
-        wallet_balance: number;
-        total_earnings: number;
-        tasks_completed: number;
-        recent_transactions: unknown[];
-      }>('wallet'),
+    get: () => wrapCall(() => walletApi.get()),
+    getEvents: (params?: { limit?: string; offset?: string; type?: string }) => 
+      wrapCall(() => walletApi.getEvents(params)),
+    addFunds: (amount: number) => wrapCall(() => walletApi.addFunds(amount)),
+    withdraw: (amount: number) => wrapCall(() => walletApi.withdraw(amount)),
+  };
 
-    addFunds: (amount: number) =>
-      callFunction('wallet', '/add-funds', { method: 'POST', body: { amount } }),
+  // Escrow operations
+  const escrow = {
+    list: (params?: { role?: 'poster' | 'doer'; status?: string }) => 
+      wrapCall(() => escrowApi.list(params)),
+    get: (escrowId: string) => wrapCall(() => escrowApi.get(escrowId)),
+    release: (taskId: string) => wrapCall(() => escrowApi.release(taskId)),
+  };
 
-    withdraw: (amount: number) =>
-      callFunction('wallet', '/withdraw', { method: 'POST', body: { amount } }),
+  // Auth operations
+  const auth = {
+    me: () => wrapCall(() => authApi.me()),
+    switchRole: (role: 'task_poster' | 'task_doer') => wrapCall(() => authApi.switchRole(role)),
   };
 
   return {
-    callFunction,
+    ...state,
     tasks,
-    escrow,
     wallet,
+    escrow,
+    auth,
+    clearError: () => setState(prev => ({ ...prev, error: null })),
   };
 }
