@@ -169,6 +169,7 @@ export type Database = {
           released_at: string | null
           status: Database["public"]["Enums"]["payment_status"]
           task_id: string
+          version: number | null
         }
         Insert: {
           auto_release_at?: string | null
@@ -183,6 +184,7 @@ export type Database = {
           released_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           task_id: string
+          version?: number | null
         }
         Update: {
           auto_release_at?: string | null
@@ -197,6 +199,7 @@ export type Database = {
           released_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           task_id?: string
+          version?: number | null
         }
         Relationships: [
           {
