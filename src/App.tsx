@@ -15,6 +15,13 @@ import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
+import SafetyPolicy from "./pages/legal/SafetyPolicy";
+import TrustSafety from "./pages/legal/TrustSafety";
+import EscrowTerms from "./pages/legal/EscrowTerms";
+import DisputeResolution from "./pages/legal/DisputeResolution";
+import Contact from "./pages/legal/Contact";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +43,13 @@ const App = () => (
               <Route path="/create-task" element={<CreateTask />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/safety" element={<SafetyPolicy />} />
+              <Route path="/trust" element={<TrustSafety />} />
+              <Route path="/escrow" element={<EscrowTerms />} />
+              <Route path="/disputes" element={<DisputeResolution />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

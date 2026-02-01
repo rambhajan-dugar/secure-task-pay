@@ -36,23 +36,23 @@ const Index: React.FC = () => {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              Get Tasks Done with{' '}
-              <span className="gradient-text">Trust & Security</span>
+              <span className="gradient-text">Nap-it</span> — Get Things{' '}
+              <span className="gradient-text">Done. Safely.</span>
             </h1>
             
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              India's trusted task marketplace. Post tasks, find skilled doers, and pay securely with escrow protection. Your money is safe until you're satisfied.
+              India's trusted task marketplace. Be The Captain (post tasks) or The Ace (complete tasks). Secured by escrow protection with SOS safety features.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <Button variant="hero" size="xl" asChild>
                 <Link to="/auth?mode=signup&role=task_giver">
-                  Post a Task <ArrowRight className="w-5 h-5 ml-2" />
+                  Become The Captain <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
               <Button variant="glass" size="xl" asChild>
                 <Link to="/auth?mode=signup&role=task_doer">
-                  Start Earning <Wallet className="w-5 h-5 ml-2" />
+                  Become The Ace <Wallet className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
             </div>
@@ -192,10 +192,10 @@ const Index: React.FC = () => {
                   <div className="flex items-center justify-between p-4 rounded-lg bg-card/50 border border-border">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-sm font-bold text-primary">JD</span>
+                        <span className="text-sm font-bold text-primary">TC</span>
                       </div>
                       <div>
-                        <p className="font-medium">John Doe</p>
+                        <p className="font-medium">The Captain</p>
                         <p className="text-xs text-muted-foreground">Task Giver</p>
                       </div>
                     </div>
@@ -213,10 +213,10 @@ const Index: React.FC = () => {
                   <div className="flex items-center justify-between p-4 rounded-lg bg-card/50 border border-border">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                        <span className="text-sm font-bold text-success">JS</span>
+                        <span className="text-sm font-bold text-success">TA</span>
                       </div>
                       <div>
-                        <p className="font-medium">Jane Smith</p>
+                        <p className="font-medium">The Ace</p>
                         <p className="text-xs text-muted-foreground">Task Doer</p>
                       </div>
                     </div>
@@ -296,10 +296,10 @@ const Index: React.FC = () => {
             <div className="absolute inset-0 bg-grid-pattern bg-[size:30px_30px] opacity-[0.05]" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Ready to Get Started?
+                Ready to Nap-it?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Join thousands of users who trust kaam.com for secure task completion. No risk, only rewards.
+                Join thousands of Captains and Aces who trust Nap-it for secure task completion. Get things done safely.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="hero" size="lg" asChild>
