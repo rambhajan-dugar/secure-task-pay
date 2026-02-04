@@ -40,7 +40,7 @@ const TaskGiverDashboard: React.FC<TaskGiverDashboardProps> = ({ user }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
+          <h1 className="text-2xl font-bold">Welcome back, Captain {user.name}</h1>
           <p className="text-muted-foreground">Manage your tasks and payments</p>
         </div>
         <Button variant="hero" asChild>

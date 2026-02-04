@@ -42,7 +42,7 @@ const TaskDoerDashboard: React.FC<TaskDoerDashboardProps> = ({ user }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
+          <h1 className="text-2xl font-bold">Welcome back, Ace {user.name}</h1>
           <p className="text-muted-foreground">Find tasks and start earning</p>
         </div>
         <Button variant="hero" asChild>
