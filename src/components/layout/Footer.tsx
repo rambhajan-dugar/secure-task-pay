@@ -45,9 +45,10 @@ const Footer: React.FC = () => {
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
+              <li><Link to="/safety" className="hover:text-foreground transition-colors">Safety Center</Link></li>
               <li><Link to="/disputes" className="hover:text-foreground transition-colors">Dispute Resolution</Link></li>
               <li><Link to="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link></li>
-              <li><Link to="/safety" className="hover:text-foreground transition-colors">Safety Policy</Link></li>
+              <li><Link to="/safety-policy" className="hover:text-foreground transition-colors">Safety Policy</Link></li>
             </ul>
           </div>
 
