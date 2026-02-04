@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { AlertTriangle, Phone, MapPin, Mic, Shield, X } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { AlertTriangle, Phone, MapPin, Mic, Shield, X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
+import { useSOSAlert } from '@/hooks/useSOSAlert';
+import { useEmergencyContacts } from '@/hooks/useEmergencyContacts';
 
 interface SOSButtonProps {
   taskId?: string;
@@ -18,6 +20,8 @@ export interface SOSData {
   longitude: number;
   isSilentMode: boolean;
   timestamp: Date;
+  eventId?: string;
+  contactsNotified?: number;
 }
 
 export const SOSButton: React.FC<SOSButtonProps> = ({
@@ -27,6 +31,9 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
   className,
 }) => {
   const { t } = useTranslation();
+  const sosAlert = useSOSAlert();
+  const { contacts } = useEmergencyContacts();
+  
   const [isActivated, setIsActivated] = useState(false);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isSwipeComplete, setIsSwipeComplete] = useState(false);
@@ -35,40 +42,27 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [locationSharing, setLocationSharing] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [notifiedCount, setNotifiedCount] = useState(0);
   
   const swipeRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
   const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Simulated location tracking every 4 seconds
-  useEffect(() => {
-    if (isActivated && locationSharing) {
-      // Initial location
-      updateLocation();
-      
-      // Update every 4 seconds
-      locationIntervalRef.current = setInterval(() => {
-        updateLocation();
-      }, 4000);
-    }
-    
-    return () => {
-      if (locationIntervalRef.current) {
-        clearInterval(locationIntervalRef.current);
-      }
-    };
-  }, [isActivated, locationSharing]);
-
-  const updateLocation = async () => {
+  // Get current location
+  const fetchLocation = useCallback(async () => {
     try {
-      // Try to get real location if available
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            setCurrentLocation({
+            const newLocation = {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
-            });
+            };
+            setCurrentLocation(newLocation);
+            // Update in database if SOS is active
+            if (sosAlert.isActive) {
+              sosAlert.updateLocation(newLocation.lat, newLocation.lng);
+            }
           },
           () => {
             // Fallback to simulated location (Mumbai area)
@@ -86,7 +80,24 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
         lng: 72.877 + (Math.random() - 0.5) * 0.01,
       });
     }
-  };
+  }, [sosAlert]);
+
+  // Location tracking every 4 seconds when active
+  useEffect(() => {
+    if (isActivated && locationSharing) {
+      fetchLocation();
+      
+      locationIntervalRef.current = setInterval(() => {
+        fetchLocation();
+      }, 4000);
+    }
+    
+    return () => {
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+      }
+    };
+  }, [isActivated, locationSharing, fetchLocation]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;
@@ -104,7 +115,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
     
     if (progress >= 0.95 && !isSwipeComplete) {
       setIsSwipeComplete(true);
-      triggerSOS();
+      handleTriggerSOS();
     }
   };
 
@@ -129,7 +140,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
       
       if (progress >= 0.95 && !isSwipeComplete) {
         setIsSwipeComplete(true);
-        triggerSOS();
+        handleTriggerSOS();
       }
     };
     
@@ -145,7 +156,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const triggerSOS = async () => {
+  const handleTriggerSOS = async () => {
     setIsActivated(true);
     setShowPanel(true);
     setLocationSharing(true);
@@ -158,23 +169,42 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
       // Haptics not available
     }
     
-    // Get initial location
-    await updateLocation();
+    // Get initial location first
+    await fetchLocation();
     
-    // Notify parent component
-    if (onSOSTriggered && currentLocation) {
-      onSOSTriggered({
-        taskId,
-        userRole,
-        latitude: currentLocation.lat,
-        longitude: currentLocation.lng,
-        isSilentMode,
-        timestamp: new Date(),
-      });
+    // Use a default location if geolocation fails
+    const location = currentLocation || { lat: 19.076, lng: 72.877 };
+    
+    // Trigger SOS in database and notify contacts
+    const result = await sosAlert.triggerSOS({
+      taskId,
+      userRole,
+      latitude: location.lat,
+      longitude: location.lng,
+      isSilentMode,
+    });
+    
+    if (result) {
+      setNotifiedCount(result.contactsNotified);
+      
+      // Notify parent component
+      if (onSOSTriggered) {
+        onSOSTriggered({
+          taskId,
+          userRole,
+          latitude: location.lat,
+          longitude: location.lng,
+          isSilentMode,
+          timestamp: new Date(),
+          eventId: result.eventId,
+          contactsNotified: result.contactsNotified,
+        });
+      }
     }
   };
 
-  const deactivateSOS = () => {
+  const handleDeactivateSOS = async () => {
+    await sosAlert.deactivateSOS();
     setIsActivated(false);
     setShowPanel(false);
     setSwipeProgress(0);
@@ -182,6 +212,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
     setLocationSharing(false);
     setIsRecording(false);
     setIsSilentMode(false);
+    setNotifiedCount(0);
     
     if (locationIntervalRef.current) {
       clearInterval(locationIntervalRef.current);
@@ -205,6 +236,14 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
   if (!isActivated) {
     return (
       <div className={cn('w-full', className)}>
+        {/* Emergency contacts indicator */}
+        {contacts.length > 0 && (
+          <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+            <Users className="w-4 h-4" />
+            <span>{contacts.length} emergency contact{contacts.length > 1 ? 's' : ''} configured</span>
+          </div>
+        )}
+        
         {/* Swipe to SOS Button */}
         <div
           ref={swipeRef}
@@ -222,7 +261,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
           
           {/* Swipe handle */}
           <div
-            className="absolute top-1 left-1 w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg transition-transform"
+            className="absolute top-1 left-1 w-14 h-14 bg-background rounded-full flex items-center justify-center shadow-lg transition-transform"
             style={{ transform: `translateX(${swipeProgress * (swipeRef.current?.offsetWidth || 200 - 60)}px)` }}
           >
             <AlertTriangle className="w-6 h-6 text-destructive" />
@@ -232,7 +271,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className={cn(
               'font-semibold transition-opacity',
-              swipeProgress > 0.3 ? 'text-white' : 'text-destructive'
+              swipeProgress > 0.3 ? 'text-destructive-foreground' : 'text-destructive'
             )}>
               {t('swipeToActivate')}
             </span>
@@ -246,25 +285,30 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
     <>
       {/* SOS Active Panel */}
       <div className={cn(
-        'fixed inset-0 z-50 bg-destructive/95 text-white p-4 flex flex-col',
+        'fixed inset-0 z-50 bg-destructive/95 text-destructive-foreground p-4 flex flex-col',
         showPanel ? 'animate-in fade-in slide-in-from-bottom duration-300' : 'hidden'
       )}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center animate-pulse">
+            <div className="w-12 h-12 rounded-full bg-background/20 flex items-center justify-center animate-pulse">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-xl font-bold">{t('sosActivated')}</h2>
-              <p className="text-white/80 text-sm">{t('safetyTeamNotified')}</p>
+              <p className="text-destructive-foreground/80 text-sm">
+                {notifiedCount > 0 
+                  ? `${notifiedCount} contact${notifiedCount > 1 ? 's' : ''} notified`
+                  : t('safetyTeamNotified')
+                }
+              </p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={deactivateSOS}
+            className="text-destructive-foreground hover:bg-background/20"
+            onClick={handleDeactivateSOS}
           >
             <X className="w-6 h-6" />
           </Button>
@@ -273,28 +317,28 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
         {/* Status Indicators */}
         <div className="space-y-4 mb-6">
           {locationSharing && (
-            <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
+            <div className="flex items-center gap-3 bg-background/10 rounded-lg p-4">
               <MapPin className="w-5 h-5 animate-pulse" />
               <div className="flex-1">
                 <p className="font-medium">{t('locationSharing')}</p>
                 {currentLocation && (
-                  <p className="text-sm text-white/70">
+                  <p className="text-sm text-destructive-foreground/70">
                     {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)}
                   </p>
                 )}
               </div>
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             </div>
           )}
 
           {isRecording && (
-            <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
-              <Mic className="w-5 h-5 text-red-300 animate-pulse" />
+            <div className="flex items-center gap-3 bg-background/10 rounded-lg p-4">
+              <Mic className="w-5 h-5 animate-pulse" />
               <div className="flex-1">
                 <p className="font-medium">{t('recordingActive')}</p>
-                <p className="text-sm text-white/70">[SIMULATED - Demo Only]</p>
+                <p className="text-sm text-destructive-foreground/70">[SIMULATED - Demo Only]</p>
               </div>
-              <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
             </div>
           )}
         </div>
@@ -306,7 +350,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
             variant={isSilentMode ? 'default' : 'outline'}
             className={cn(
               'w-full h-14 text-lg justify-start gap-4',
-              isSilentMode ? 'bg-white text-destructive' : 'border-white/50 text-white hover:bg-white/10'
+              isSilentMode ? 'bg-background text-destructive' : 'border-destructive-foreground/50 text-destructive-foreground hover:bg-background/10'
             )}
             onClick={toggleSilentMode}
           >
@@ -318,7 +362,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
           {/* Emergency Calls - SIMULATED */}
           <Button
             variant="outline"
-            className="w-full h-14 text-lg justify-start gap-4 border-white/50 text-white hover:bg-white/10"
+            className="w-full h-14 text-lg justify-start gap-4 border-destructive-foreground/50 text-destructive-foreground hover:bg-background/10"
             onClick={() => simulateEmergencyCall('112')}
           >
             <Phone className="w-6 h-6" />
@@ -328,7 +372,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
 
           <Button
             variant="outline"
-            className="w-full h-14 text-lg justify-start gap-4 border-white/50 text-white hover:bg-white/10"
+            className="w-full h-14 text-lg justify-start gap-4 border-destructive-foreground/50 text-destructive-foreground hover:bg-background/10"
             onClick={() => simulateEmergencyCall('102')}
           >
             <Phone className="w-6 h-6" />
@@ -339,7 +383,7 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
           {/* Share Location */}
           <Button
             variant="outline"
-            className="w-full h-14 text-lg justify-start gap-4 border-white/50 text-white hover:bg-white/10"
+            className="w-full h-14 text-lg justify-start gap-4 border-destructive-foreground/50 text-destructive-foreground hover:bg-background/10"
             onClick={() => setLocationSharing(true)}
           >
             <MapPin className="w-6 h-6" />
@@ -348,10 +392,10 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-4 p-4 bg-white/10 rounded-lg">
+        <div className="mt-4 p-4 bg-background/10 rounded-lg">
           <div className="flex items-start gap-3">
             <Shield className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-destructive-foreground/80">
               {t('sosDisclaimer')}
             </p>
           </div>
@@ -360,8 +404,8 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
         {/* Deactivate Button */}
         <Button
           variant="secondary"
-          className="w-full mt-4 h-14 text-lg bg-white text-destructive hover:bg-white/90"
-          onClick={deactivateSOS}
+          className="w-full mt-4 h-14 text-lg bg-background text-destructive hover:bg-background/90"
+          onClick={handleDeactivateSOS}
         >
           {t('sosDeactivated')} - {t('cancel')}
         </Button>

@@ -22,6 +22,7 @@ import TrustSafety from "./pages/legal/TrustSafety";
 import EscrowTerms from "./pages/legal/EscrowTerms";
 import DisputeResolution from "./pages/legal/DisputeResolution";
 import Contact from "./pages/legal/Contact";
+import Safety from "./pages/Safety";
 
 const queryClient = new QueryClient();
 
@@ -45,10 +46,12 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/safety" element={<SafetyPolicy />} />
+              <Route path="/safety-policy" element={<SafetyPolicy />} />
+              <Route path="/safety" element={<Safety />} />
               <Route path="/trust" element={<TrustSafety />} />
               <Route path="/escrow" element={<EscrowTerms />} />
               <Route path="/disputes" element={<DisputeResolution />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

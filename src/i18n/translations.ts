@@ -101,8 +101,9 @@ export const translations = {
     addEmergencyContact: 'Add Emergency Contact',
     sosDisclaimer: 'This is a demonstration feature. In a real emergency, please call emergency services directly.',
     
-    // Safety Dashboard
+    // Safety Dashboard & Center
     safetyDashboard: 'Safety Dashboard',
+    safetyCenter: 'Safety Center',
     activeSOSEvents: 'Active SOS Events',
     respondToSOS: 'Respond to SOS',
     resolvedEvents: 'Resolved Events',
