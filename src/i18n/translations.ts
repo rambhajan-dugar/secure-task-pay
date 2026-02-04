@@ -1,5 +1,5 @@
 // =============================================
-// KAAM.COM MULTILINGUAL SUPPORT
+// NAP-IT MULTILINGUAL SUPPORT
 // Languages: English, Hindi, Bengali, Marathi, Tamil, Telugu
 // =============================================
 
@@ -26,8 +26,8 @@ export type TranslationKey = keyof typeof translations.en;
 export const translations = {
   en: {
     // App
-    appName: 'kaam.com',
-    tagline: 'Work. Earn. Trust.',
+    appName: 'Nap-it',
+    tagline: 'Get Things Done. Safely.',
     
     // Navigation
     home: 'Home',
@@ -40,8 +40,8 @@ export const translations = {
     signup: 'Sign Up',
     
     // Roles
-    taskPoster: 'Task Poster',
-    taskDoer: 'Task Doer',
+    taskPoster: 'The Captain',
+    taskDoer: 'The Ace',
     selectRole: 'Select your role',
     
     // Auth
@@ -127,16 +127,16 @@ export const translations = {
     languageChanged: 'Language changed successfully',
     
     // Onboarding
-    welcomeTitle: 'Welcome to kaam.com',
-    welcomeSubtitle: 'The safest way to work and earn',
+    welcomeTitle: 'Welcome to Nap-it',
+    welcomeSubtitle: 'Get Things Done. Safely.',
     getStarted: 'Get Started',
     chooseLanguage: 'Choose your language',
     continueBtn: 'Continue',
   },
   
   hi: {
-    appName: 'kaam.com',
-    tagline: 'काम करो। कमाओ। भरोसा।',
+    appName: 'Nap-it',
+    tagline: 'काम करवाओ। सुरक्षित।',
     
     home: 'होम',
     tasks: 'टास्क',
@@ -147,8 +147,8 @@ export const translations = {
     login: 'लॉगिन',
     signup: 'साइन अप',
     
-    taskPoster: 'टास्क पोस्टर',
-    taskDoer: 'टास्क डूअर',
+    taskPoster: 'द कैप्टन',
+    taskDoer: 'द एस',
     selectRole: 'अपनी भूमिका चुनें',
     
     email: 'ईमेल',
@@ -225,16 +225,16 @@ export const translations = {
     selectLanguage: 'भाषा चुनें',
     languageChanged: 'भाषा सफलतापूर्वक बदल गई',
     
-    welcomeTitle: 'kaam.com में आपका स्वागत है',
-    welcomeSubtitle: 'काम करने और कमाने का सबसे सुरक्षित तरीका',
+    welcomeTitle: 'Nap-it में आपका स्वागत है',
+    welcomeSubtitle: 'काम करवाओ। सुरक्षित।',
     getStarted: 'शुरू करें',
     chooseLanguage: 'अपनी भाषा चुनें',
     continueBtn: 'जारी रखें',
   },
   
   bn: {
-    appName: 'kaam.com',
-    tagline: 'কাজ করুন। উপার্জন করুন। বিশ্বাস করুন।',
+    appName: 'Nap-it',
+    tagline: 'কাজ করান। নিরাপদে।',
     
     home: 'হোম',
     tasks: 'টাস্ক',
@@ -245,8 +245,8 @@ export const translations = {
     login: 'লগইন',
     signup: 'সাইন আপ',
     
-    taskPoster: 'টাস্ক পোস্টার',
-    taskDoer: 'টাস্ক ডুয়ার',
+    taskPoster: 'দ্য ক্যাপ্টেন',
+    taskDoer: 'দ্য এস',
     selectRole: 'আপনার ভূমিকা নির্বাচন করুন',
     
     email: 'ইমেইল',
@@ -323,16 +323,16 @@ export const translations = {
     selectLanguage: 'ভাষা নির্বাচন করুন',
     languageChanged: 'ভাষা সফলভাবে পরিবর্তন হয়েছে',
     
-    welcomeTitle: 'kaam.com এ স্বাগতম',
-    welcomeSubtitle: 'কাজ করার এবং উপার্জনের সবচেয়ে নিরাপদ উপায়',
+    welcomeTitle: 'Nap-it এ স্বাগতম',
+    welcomeSubtitle: 'কাজ করান। নিরাপদে।',
     getStarted: 'শুরু করুন',
     chooseLanguage: 'আপনার ভাষা চয়ন করুন',
     continueBtn: 'চালিয়ে যান',
   },
   
   mr: {
-    appName: 'kaam.com',
-    tagline: 'काम करा। कमवा। विश्वास ठेवा।',
+    appName: 'Nap-it',
+    tagline: 'काम करवा। सुरक्षित।',
     
     home: 'होम',
     tasks: 'टास्क',
@@ -343,8 +343,8 @@ export const translations = {
     login: 'लॉगिन',
     signup: 'साइन अप',
     
-    taskPoster: 'टास्क पोस्टर',
-    taskDoer: 'टास्क डूअर',
+    taskPoster: 'द कॅप्टन',
+    taskDoer: 'द एस',
     selectRole: 'तुमची भूमिका निवडा',
     
     email: 'ईमेल',
@@ -421,16 +421,16 @@ export const translations = {
     selectLanguage: 'भाषा निवडा',
     languageChanged: 'भाषा यशस्वीरित्या बदलली',
     
-    welcomeTitle: 'kaam.com मध्ये स्वागत आहे',
-    welcomeSubtitle: 'काम करण्याचा आणि कमावण्याचा सर्वात सुरक्षित मार्ग',
+    welcomeTitle: 'Nap-it मध्ये स्वागत आहे',
+    welcomeSubtitle: 'काम करवा। सुरक्षित।',
     getStarted: 'सुरू करा',
     chooseLanguage: 'तुमची भाषा निवडा',
     continueBtn: 'सुरू ठेवा',
   },
   
   ta: {
-    appName: 'kaam.com',
-    tagline: 'வேலை செய்யுங்கள். சம்பாதியுங்கள். நம்புங்கள்.',
+    appName: 'Nap-it',
+    tagline: 'வேலை செய்விக்கவும். பாதுகாப்பாக.',
     
     home: 'முகப்பு',
     tasks: 'பணிகள்',
@@ -441,8 +441,8 @@ export const translations = {
     login: 'உள்நுழை',
     signup: 'பதிவு செய்',
     
-    taskPoster: 'பணி பதிவர்',
-    taskDoer: 'பணி செய்பவர்',
+    taskPoster: 'தி கேப்டன்',
+    taskDoer: 'தி ஏஸ்',
     selectRole: 'உங்கள் பாத்திரத்தைத் தேர்ந்தெடுக்கவும்',
     
     email: 'மின்னஞ்சல்',
@@ -519,16 +519,16 @@ export const translations = {
     selectLanguage: 'மொழியைத் தேர்ந்தெடு',
     languageChanged: 'மொழி வெற்றிகரமாக மாற்றப்பட்டது',
     
-    welcomeTitle: 'kaam.com க்கு வரவேற்கிறோம்',
-    welcomeSubtitle: 'வேலை செய்து சம்பாதிக்க மிகவும் பாதுகாப்பான வழி',
+    welcomeTitle: 'Nap-it க்கு வரவேற்கிறோம்',
+    welcomeSubtitle: 'வேலை செய்விக்கவும். பாதுகாப்பாக.',
     getStarted: 'தொடங்கு',
     chooseLanguage: 'உங்கள் மொழியைத் தேர்வுசெய்க',
     continueBtn: 'தொடர்க',
   },
   
   te: {
-    appName: 'kaam.com',
-    tagline: 'పని చేయండి. సంపాదించండి. నమ్మండి.',
+    appName: 'Nap-it',
+    tagline: 'పని చేయించండి. సురక్షితంగా.',
     
     home: 'హోమ్',
     tasks: 'టాస్క్‌లు',
@@ -539,8 +539,8 @@ export const translations = {
     login: 'లాగిన్',
     signup: 'సైన్ అప్',
     
-    taskPoster: 'టాస్క్ పోస్టర్',
-    taskDoer: 'టాస్క్ డూయర్',
+    taskPoster: 'ది క్యాప్టెన్',
+    taskDoer: 'ది ఏస్',
     selectRole: 'మీ పాత్రను ఎంచుకోండి',
     
     email: 'ఇమెయిల్',
@@ -617,8 +617,8 @@ export const translations = {
     selectLanguage: 'భాషను ఎంచుకోండి',
     languageChanged: 'భాష విజయవంతంగా మార్చబడింది',
     
-    welcomeTitle: 'kaam.com కు స్వాగతం',
-    welcomeSubtitle: 'పని చేసి సంపాదించడానికి అత్యంత సురక్షితమైన మార్గం',
+    welcomeTitle: 'Nap-it కు స్వాగతం',
+    welcomeSubtitle: 'పని చేయించండి. సురక్షితంగా.',
     getStarted: 'ప్రారంభించండి',
     chooseLanguage: 'మీ భాషను ఎంచుకోండి',
     continueBtn: 'కొనసాగించు',

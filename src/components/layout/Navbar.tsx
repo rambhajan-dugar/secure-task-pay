@@ -31,14 +31,14 @@ const Navbar: React.FC = () => {
     const newRole = currentRole === 'task_poster' ? 'task_doer' : 'task_poster';
     try {
       await switchRole(newRole);
-      toast.success(`Switched to ${newRole === 'task_poster' ? 'Task Giver' : 'Task Doer'} mode`);
+      toast.success(`Switched to ${newRole === 'task_poster' ? 'The Captain' : 'The Ace'} mode`);
     } catch (error) {
       toast.error('Failed to switch role');
     }
   };
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
-  const displayRole = currentRole === 'task_poster' ? 'Task Giver' : 'Task Doer';
+  const displayRole = currentRole === 'task_poster' ? 'The Captain' : 'The Ace';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -47,9 +47,9 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">K</span>
+              <span className="text-primary-foreground font-bold text-lg">N</span>
             </div>
-            <span className="text-xl font-bold">kaam.com</span>
+            <span className="text-xl font-bold">Nap-it</span>
           </Link>
 
           {/* Navigation Links */}
@@ -99,7 +99,7 @@ const Navbar: React.FC = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSwitchRole} className="cursor-pointer">
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Switch to {currentRole === 'task_poster' ? 'Task Doer' : 'Task Giver'}
+                      Switch to {currentRole === 'task_poster' ? 'The Ace' : 'The Captain'}
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/settings" className="cursor-pointer">
