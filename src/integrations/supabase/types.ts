@@ -53,6 +53,35 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
@@ -277,6 +306,83 @@ export type Database = {
           request_hash?: string
           response?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          flagged_at: string | null
+          flagged_reason: string | null
+          id: string
+          is_flagged: boolean | null
+          receiver_id: string
+          sender_id: string
+          task_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          flagged_at?: string | null
+          flagged_reason?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          receiver_id: string
+          sender_id: string
+          task_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          flagged_at?: string | null
+          flagged_reason?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_events: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_id?: string
+          target_type?: string
         }
         Relationships: []
       }
@@ -604,6 +710,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "task_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_verifications: {
+        Row: {
+          expires_at: string | null
+          id: string
+          image_path: string
+          is_approved: boolean | null
+          phase: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          task_id: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          image_path: string
+          is_approved?: boolean | null
+          phase: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          task_id: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          image_path?: string
+          is_approved?: boolean | null
+          phase?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          task_id?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_verifications_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
