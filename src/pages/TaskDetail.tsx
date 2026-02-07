@@ -11,6 +11,8 @@ import FeeBreakdown from '@/components/shared/FeeBreakdown';
 import CountdownTimer from '@/components/shared/CountdownTimer';
 import EscrowStatusBadge from '@/components/shared/EscrowStatusBadge';
 import SOSButton from '@/components/safety/SOSButton';
+import TaskChatPanel from '@/components/chat/TaskChatPanel';
+import TaskVerificationPanel from '@/components/verification/TaskVerificationPanel';
 import { mockTasks, mockEscrowTransactions, taskCategories, getStatusColor } from '@/lib/mockData';
 import { formatCurrency } from '@/lib/feeCalculator';
 import { format } from 'date-fns';
@@ -166,6 +168,26 @@ const TaskDetail: React.FC = () => {
                     userRole="doer"
                   />
                 </div>
+              )}
+
+              {/* Image Verification Section (for assigned tasks) */}
+              {task.doerName && ['accepted', 'in_progress', 'submitted', 'under_review'].includes(task.status) && (
+                <TaskVerificationPanel
+                  taskId={task.id}
+                  taskStatus={task.status}
+                  isDoer={isAssignedToMe}
+                  isPoster={isMyTask}
+                />
+              )}
+
+              {/* Chat Section (for assigned tasks) */}
+              {task.doerName && (
+                <TaskChatPanel
+                  taskId={task.id}
+                  taskStatus={task.status}
+                  otherPartyId={isMyTask ? (task as any).doerId : (task as any).giverId}
+                  otherPartyName={isMyTask ? task.doerName : task.giverName}
+                />
               )}
 
               {/* Escrow Info (for assigned tasks) */}

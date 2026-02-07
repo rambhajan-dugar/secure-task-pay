@@ -23,6 +23,7 @@ import EscrowTerms from "./pages/legal/EscrowTerms";
 import DisputeResolution from "./pages/legal/DisputeResolution";
 import Contact from "./pages/legal/Contact";
 import Safety from "./pages/Safety";
+import AdminModeration from "./pages/AdminModeration";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +53,7 @@ const App = () => (
               <Route path="/escrow" element={<EscrowTerms />} />
               <Route path="/disputes" element={<DisputeResolution />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/contact" element={<Contact />} />
+              <Route path="/admin/moderation" element={<AdminModeration />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
