@@ -31,6 +31,7 @@ interface UseTaskChatReturn {
   markAsRead: (messageId: string) => Promise<void>;
   isChatEnabled: boolean;
   rateLimitRemaining: number;
+  messageEvents: Record<string, string[]>;
 }
 
 // Rate limit: 20 messages per minute
@@ -47,6 +48,7 @@ export function useTaskChat(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [messageTimes, setMessageTimes] = useState<number[]>([]);
+  const [messageEvents, setMessageEvents] = useState<Record<string, string[]>>({});
 
   // Chat is enabled only for active task statuses
   const isChatEnabled = ['accepted', 'in_progress', 'submitted', 'under_review'].includes(taskStatus);
@@ -56,7 +58,7 @@ export function useTaskChat(
   const recentMessages = messageTimes.filter(time => now - time < RATE_LIMIT_WINDOW);
   const rateLimitRemaining = RATE_LIMIT_MAX - recentMessages.length;
 
-  // Load messages
+  // Load messages and their events
   useEffect(() => {
     if (!taskId || !user) return;
 
@@ -75,6 +77,26 @@ export function useTaskChat(
         console.error('Error loading messages:', fetchError);
       } else {
         setMessages(data || []);
+
+        // Load chat events for delivery status
+        if (data && data.length > 0) {
+          const messageIds = data.map(m => m.id);
+          const { data: events } = await supabase
+            .from('chat_events')
+            .select('*')
+            .in('message_id', messageIds);
+
+          if (events) {
+            const eventsMap: Record<string, string[]> = {};
+            events.forEach((event: ChatEvent) => {
+              if (!eventsMap[event.message_id]) {
+                eventsMap[event.message_id] = [];
+              }
+              eventsMap[event.message_id].push(event.event_type);
+            });
+            setMessageEvents(eventsMap);
+          }
+        }
       }
 
       setIsLoading(false);
@@ -119,8 +141,33 @@ export function useTaskChat(
       )
       .subscribe();
 
+    // Subscribe to chat events for real-time delivery status
+    const eventsChannel = supabase
+      .channel(`chat_events:${taskId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_events',
+        },
+        (payload) => {
+          const newEvent = payload.new as ChatEvent;
+          setMessageEvents((prev) => {
+            const current = prev[newEvent.message_id] || [];
+            if (current.includes(newEvent.event_type)) return prev;
+            return {
+              ...prev,
+              [newEvent.message_id]: [...current, newEvent.event_type],
+            };
+          });
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(eventsChannel);
     };
   }, [taskId, user]);
 
@@ -150,12 +197,12 @@ export function useTaskChat(
     const trimmedContent = content.trim();
     if (!trimmedContent) return false;
 
-    const { error: insertError } = await supabase.from('messages').insert({
+    const { data: insertedMessage, error: insertError } = await supabase.from('messages').insert({
       task_id: taskId,
       sender_id: user.id,
       receiver_id: otherPartyId,
       content: trimmedContent,
-    });
+    }).select().single();
 
     if (insertError) {
       console.error('Error sending message:', insertError);
@@ -167,7 +214,21 @@ export function useTaskChat(
     setMessageTimes(prev => [...prev.filter(t => now - t < RATE_LIMIT_WINDOW), now]);
 
     // Create sent event
-    // Note: We'll create the event after getting the message ID from real-time
+    if (insertedMessage) {
+      await supabase.from('chat_events').insert({
+        message_id: insertedMessage.id,
+        event_type: 'sent',
+      });
+
+      // Simulate delivered event after a short delay (in production, this would come from the receiver's client)
+      setTimeout(async () => {
+        await supabase.from('chat_events').insert({
+          message_id: insertedMessage.id,
+          event_type: 'delivered',
+        });
+      }, 1000);
+    }
+
     return true;
   }, [user, otherPartyId, taskId, isChatEnabled, messageTimes]);
 
@@ -230,5 +291,6 @@ export function useTaskChat(
     markAsRead,
     isChatEnabled,
     rateLimitRemaining,
+    messageEvents,
   };
 }

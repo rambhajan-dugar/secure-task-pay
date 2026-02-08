@@ -187,6 +187,10 @@ const TaskDetail: React.FC = () => {
                   taskStatus={task.status}
                   otherPartyId={isMyTask ? (task as any).doerId : (task as any).giverId}
                   otherPartyName={isMyTask ? task.doerName : task.giverName}
+                  isChatMuted={false}
+                  isUserFrozen={false}
+                  isOtherPartyFrozen={false}
+                  disputeStatus={task.status === 'disputed' ? 'open' : null}
                 />
               )}
 

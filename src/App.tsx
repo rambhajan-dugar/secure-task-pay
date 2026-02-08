@@ -24,6 +24,7 @@ import DisputeResolution from "./pages/legal/DisputeResolution";
 import Contact from "./pages/legal/Contact";
 import Safety from "./pages/Safety";
 import AdminModeration from "./pages/AdminModeration";
+import DisputeDetail from "./pages/DisputeDetail";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/disputes" element={<DisputeResolution />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admin/moderation" element={<AdminModeration />} />
+              <Route path="/dispute/:id" element={<DisputeDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -43,6 +43,7 @@ import {
   Unlock,
   RefreshCw,
   Loader2,
+  Scale,
 } from 'lucide-react';
 
 const AdminModeration: React.FC = () => {
@@ -206,8 +207,12 @@ const AdminModeration: React.FC = () => {
           </div>
 
           {/* Main Tabs */}
-          <Tabs defaultValue="flagged" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="disputes" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="disputes" className="flex items-center gap-2">
+                <Scale className="w-4 h-4" />
+                Disputes
+              </TabsTrigger>
               <TabsTrigger value="flagged" className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
                 Flagged Chats
@@ -225,6 +230,27 @@ const AdminModeration: React.FC = () => {
                 History
               </TabsTrigger>
             </TabsList>
+
+            {/* Disputes Tab */}
+            <TabsContent value="disputes">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Scale className="w-5 h-5" />
+                    Dispute Queue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[500px]">
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Scale className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No disputes in queue</p>
+                      <p className="text-sm mt-2">Disputes will appear here when Captain or Ace raise them</p>
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* Flagged Messages Tab */}
             <TabsContent value="flagged">
