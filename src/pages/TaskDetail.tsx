@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useDispute } from '@/hooks/useDispute';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,11 +86,15 @@ const TaskDetail: React.FC = () => {
     toast.success('Work approved! Payment released to the doer.');
     navigate('/dashboard');
   };
+  const { createDispute } = useDispute();
 
-  const handleRaiseDispute = () => {
-    toast.info('Dispute raised. Our team will review and contact both parties.');
+  const handleRaiseDispute = async () => {
+    if (!id || !disputeReason) return;
+    const disputeId = await createDispute(id, disputeReason, disputeDescription);
     setShowDisputeDialog(false);
-    navigate('/dashboard');
+    if (disputeId) {
+      navigate(`/dispute/${disputeId}`);
+    }
   };
 
   return (

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useModeration } from '@/hooks/useModeration';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useDisputeList } from '@/hooks/useDispute';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +49,7 @@ import {
 
 const AdminModeration: React.FC = () => {
   const { isAuthenticated, currentRole, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const {
     flaggedMessages,
     pendingVerifications,
@@ -62,6 +64,7 @@ const AdminModeration: React.FC = () => {
     dismissFlag,
     refreshData,
   } = useModeration();
+  const { disputes: openDisputes, isLoading: disputesLoading } = useDisputeList('open');
 
   const [actionDialog, setActionDialog] = useState<{
     type: 'warn' | 'freeze' | 'unfreeze' | 'approve' | 'reject' | 'dismiss' | null;
@@ -238,15 +241,54 @@ const AdminModeration: React.FC = () => {
                   <CardTitle className="flex items-center gap-2">
                     <Scale className="w-5 h-5" />
                     Dispute Queue
+                    {openDisputes.length > 0 && (
+                      <Badge variant="destructive">{openDisputes.length}</Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[500px]">
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Scale className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No disputes in queue</p>
-                      <p className="text-sm mt-2">Disputes will appear here when Captain or Ace raise them</p>
-                    </div>
+                    {disputesLoading ? (
+                      <div className="text-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+                      </div>
+                    ) : openDisputes.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Scale className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No disputes in queue</p>
+                        <p className="text-sm mt-2">Disputes will appear here when Captain or Ace raise them</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {openDisputes.map((d) => (
+                          <div
+                            key={d.id}
+                            className="p-4 rounded-lg border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                            onClick={() => navigate(`/dispute/${d.id}`)}
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant={d.status === 'escalated' ? 'destructive' : 'secondary'} className="capitalize">
+                                    {d.status.replace('_', ' ')}
+                                  </Badge>
+                                  {d.status === 'escalated' && (
+                                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                                  )}
+                                </div>
+                                <h4 className="font-medium truncate">{d.task_title || 'Untitled Task'}</h4>
+                                <p className="text-sm text-muted-foreground truncate">{d.reason}</p>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                  <span>By: {d.raised_by_role}</span>
+                                  <span>{format(new Date(d.created_at), 'MMM dd, HH:mm')}</span>
+                                  {d.escrow_amount && <span>₹{d.escrow_amount}</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </ScrollArea>
                 </CardContent>
               </Card>
