@@ -9,6 +9,7 @@ import {
   Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CooldownTimer } from './CooldownTimer';
 
 export type ChatStateType = 'active' | 'restricted' | 'locked';
 
@@ -44,9 +45,6 @@ export const ChatStateBanner: React.FC<ChatStateBannerProps> = ({
 
     if (state.reason === 'rate_limited') {
       icon = <Clock className="w-4 h-4 flex-shrink-0" />;
-      message = state.cooldownSeconds 
-        ? `Rate limit exceeded. Try again in ${state.cooldownSeconds}s`
-        : "You've hit the message limit. Please wait.";
     } else if (state.reason === 'muted' || state.reason === 'under_review') {
       icon = <MessageSquareOff className="w-4 h-4 flex-shrink-0" />;
       message = 'Chat temporarily disabled due to moderation review';
@@ -59,6 +57,9 @@ export const ChatStateBanner: React.FC<ChatStateBannerProps> = ({
       )}>
         {icon}
         <span className="flex-1">{message}</span>
+        {state.reason === 'rate_limited' && state.cooldownSeconds && (
+          <CooldownTimer seconds={state.cooldownSeconds} />
+        )}
       </div>
     );
   }
