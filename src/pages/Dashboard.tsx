@@ -21,7 +21,20 @@ const Dashboard: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Create a compatible user object for the existing dashboard components
+  // Check verification
+  const verificationStatus = (profile as any)?.verification_status;
+  if (verificationStatus !== 'approved') {
+    return <Navigate to="/verification-pending" replace />;
+  }
+
+  // Role-based redirect for legacy /dashboard route
+  const path = window.location.pathname;
+  if (path === '/dashboard') {
+    if (currentRole === 'task_poster') return <Navigate to="/captain/dashboard" replace />;
+    if (currentRole === 'admin') return <Navigate to="/admin/moderation" replace />;
+    return <Navigate to="/ace/dashboard" replace />;
+  }
+
   const compatibleUser = {
     id: user.id,
     email: user.email || '',

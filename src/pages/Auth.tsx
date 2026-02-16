@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth, AppRole } from '@/contexts/SupabaseAuthContext';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2, Upload, Shield, ImageIcon } from 'lucide-react';
 import LanguageSelector from '@/components/LanguageSelector';
 
 const Auth: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { signIn, signUp, isAuthenticated, isLoading: authLoading, currentRole, profile } = useAuth();
   const { language } = useLanguage();
   
   const [mode, setMode] = useState<'login' | 'signup'>(
@@ -23,6 +24,9 @@ const Auth: React.FC = () => {
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [idImage, setIdImage] = useState<File | null>(null);
+  const [idImagePreview, setIdImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -34,13 +38,43 @@ const Auth: React.FC = () => {
     email?: string;
     password?: string;
     name?: string;
+    idImage?: string;
   }>({});
 
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      navigate('/dashboard');
+    if (isAuthenticated && !authLoading && profile) {
+      const verificationStatus = (profile as any).verification_status;
+      if (verificationStatus === 'approved') {
+        // Route based on role
+        if (currentRole === 'task_poster') {
+          navigate('/captain/dashboard');
+        } else if (currentRole === 'admin') {
+          navigate('/admin/moderation');
+        } else {
+          navigate('/ace/dashboard');
+        }
+      } else {
+        navigate('/verification-pending');
+      }
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, currentRole, profile]);
+
+  const handleIdImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, idImage: 'Image must be less than 5MB' }));
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        setErrors(prev => ({ ...prev, idImage: 'Only JPG, PNG, or WEBP images allowed' }));
+        return;
+      }
+      setIdImage(file);
+      setIdImagePreview(URL.createObjectURL(file));
+      setErrors(prev => ({ ...prev, idImage: undefined }));
+    }
+  };
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -57,17 +91,37 @@ const Auth: React.FC = () => {
       newErrors.password = 'Password must be at least 6 characters';
     }
     
-    if (mode === 'signup' && !formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (mode === 'signup') {
+      if (!formData.name.trim()) {
+        newErrors.name = 'Name is required';
+      }
+      if (!idImage) {
+        newErrors.idImage = 'ID image is required for verification';
+      }
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const uploadIdImage = async (userId: string): Promise<string | null> => {
+    if (!idImage) return null;
+    const ext = idImage.name.split('.').pop();
+    const path = `${userId}/id-verification.${ext}`;
+    
+    const { error } = await supabase.storage
+      .from('id-verifications')
+      .upload(path, idImage, { upsert: true });
+    
+    if (error) {
+      console.error('ID image upload error:', error);
+      return null;
+    }
+    return path;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
     
     setLoading(true);
@@ -75,27 +129,35 @@ const Auth: React.FC = () => {
 
     try {
       if (mode === 'login') {
-        await signIn(formData.email, formData.password);
+        const { user } = await signIn(formData.email, formData.password);
         toast.success('Welcome back!');
-        navigate('/dashboard');
+        // Navigation handled by useEffect
       } else {
-        await signUp(formData.email, formData.password, formData.name, role, language);
-        toast.success('Account created! You can now sign in.');
-        // Auto login after signup (since auto-confirm is enabled)
+        const result = await signUp(formData.email, formData.password, formData.name, role, language);
+        
+        // Upload ID image after signup
+        if (result.user) {
+          const imagePath = await uploadIdImage(result.user.id);
+          if (imagePath) {
+            // Update profile with image path
+            await supabase
+              .from('profiles')
+              .update({ id_image_url: imagePath } as any)
+              .eq('user_id', result.user.id);
+          }
+        }
+        
+        toast.success('Account created! Pending verification.');
+        // Auto login after signup
         await signIn(formData.email, formData.password);
-        navigate('/dashboard');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Something went wrong';
-      
-      // Handle specific Supabase errors
       if (message.includes('Invalid login credentials')) {
         toast.error('Invalid email or password');
       } else if (message.includes('User already registered')) {
         toast.error('An account with this email already exists');
         setMode('login');
-      } else if (message.includes('Email not confirmed')) {
-        toast.error('Please confirm your email before signing in');
       } else {
         toast.error(message);
       }
@@ -104,7 +166,6 @@ const Auth: React.FC = () => {
     }
   };
 
-  // Show loading while checking auth state
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -116,14 +177,14 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-8">
         <div className="w-full max-w-md">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">K</span>
+                <span className="text-primary-foreground font-bold text-lg">N</span>
               </div>
-              <span className="text-xl font-bold">kaam.com</span>
+              <span className="text-xl font-bold">Nap-it</span>
             </Link>
             <LanguageSelector variant="dropdown" />
           </div>
@@ -131,42 +192,46 @@ const Auth: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-muted-foreground mb-6">
             {mode === 'login' 
-              ? 'Sign in to continue to your dashboard' 
-              : 'Join thousands of users on kaam.com'}
+              ? 'Sign in to continue' 
+              : 'Join Nap-it as a Captain or Ace'}
           </p>
 
-          {/* Role Selection */}
-          <div className="mb-6">
-            <Label className="text-sm text-muted-foreground mb-2 block">I want to</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole('task_poster')}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  role === 'task_poster'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <p className="font-medium">Post Tasks</p>
-                <p className="text-xs text-muted-foreground">I need work done</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('task_doer')}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  role === 'task_doer'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <p className="font-medium">Do Tasks</p>
-                <p className="text-xs text-muted-foreground">I want to earn</p>
-              </button>
+          {/* Role Selection - only on signup */}
+          {mode === 'signup' && (
+            <div className="mb-6">
+              <Label className="text-sm text-muted-foreground mb-2 block">I want to be</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole('task_poster')}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    role === 'task_poster'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="text-lg mb-1">🎯</div>
+                  <p className="font-semibold">Captain</p>
+                  <p className="text-xs text-muted-foreground">I post tasks</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('task_doer')}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    role === 'task_doer'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="text-lg mb-1">⚡</div>
+                  <p className="font-semibold">Ace</p>
+                  <p className="text-xs text-muted-foreground">I complete tasks</p>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
@@ -230,6 +295,55 @@ const Auth: React.FC = () => {
               {errors.password && <p className="text-destructive text-sm mt-1">{errors.password}</p>}
             </div>
 
+            {/* ID Image Upload - only on signup */}
+            {mode === 'signup' && (
+              <div>
+                <Label>ID Verification Image</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Upload a photo of your government-issued ID for verification
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleIdImageChange}
+                  className="hidden"
+                />
+                {idImagePreview ? (
+                  <div className="relative mt-1">
+                    <img 
+                      src={idImagePreview} 
+                      alt="ID Preview" 
+                      className="w-full h-32 object-cover rounded-xl border border-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIdImage(null);
+                        setIdImagePreview(null);
+                      }}
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`w-full h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
+                      errors.idImage ? 'border-destructive' : 'border-border hover:border-primary/50'
+                    }`}
+                    disabled={loading}
+                  >
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Click to upload ID image</span>
+                  </button>
+                )}
+                {errors.idImage && <p className="text-destructive text-sm mt-1">{errors.idImage}</p>}
+              </div>
+            )}
+
             <Button type="submit" variant="hero" className="w-full" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -244,6 +358,15 @@ const Auth: React.FC = () => {
               )}
             </Button>
           </form>
+
+          {mode === 'signup' && (
+            <div className="mt-4 p-3 rounded-lg bg-info/10 border border-info/20 flex items-start gap-2">
+              <Shield className="w-4 h-4 text-info shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                Your account will be reviewed by our team before activation. This helps keep Nap-it safe for everyone.
+              </p>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-muted-foreground">
@@ -269,16 +392,16 @@ const Auth: React.FC = () => {
           <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-8">
             <span className="text-4xl">🔒</span>
           </div>
-          <h2 className="text-2xl font-bold mb-4">Secure Escrow Payments</h2>
+          <h2 className="text-2xl font-bold mb-4">Verified & Secure Marketplace</h2>
           <p className="text-muted-foreground mb-8">
-            Your money is protected until you're satisfied with the work. No risks, only rewards.
+            Every user is verified before they can participate. Your safety is our priority.
           </p>
           <div className="flex flex-col gap-4 text-left">
             {[
-              '100% money protection with escrow',
-              '24-hour auto-release for quick payments',
-              'Dispute resolution by our team',
-              'Decreasing fees as you grow',
+              'ID verification for all users',
+              'Role-based access (Captain or Ace)',
+              '100% escrow-protected payments',
+              'Admin-reviewed dispute resolution',
             ].map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center shrink-0">
