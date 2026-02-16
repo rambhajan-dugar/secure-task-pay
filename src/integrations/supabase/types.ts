@@ -422,6 +422,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          id_image_url: string | null
           is_verified: boolean | null
           phone: string | null
           preferred_language: string | null
@@ -430,6 +431,7 @@ export type Database = {
           total_earnings: number | null
           updated_at: string
           user_id: string
+          verification_status: string
           wallet_balance: number | null
         }
         Insert: {
@@ -437,6 +439,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          id_image_url?: string | null
           is_verified?: boolean | null
           phone?: string | null
           preferred_language?: string | null
@@ -445,6 +448,7 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id: string
+          verification_status?: string
           wallet_balance?: number | null
         }
         Update: {
@@ -452,6 +456,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          id_image_url?: string | null
           is_verified?: boolean | null
           phone?: string | null
           preferred_language?: string | null
@@ -460,6 +465,7 @@ export type Database = {
           total_earnings?: number | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
           wallet_balance?: number | null
         }
         Relationships: []

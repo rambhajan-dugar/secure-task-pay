@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, Settings, Wallet, RefreshCw } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Settings, Wallet, RefreshCw, Shield, Plus, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/feeCalculator';
 import { toast } from 'sonner';
 
@@ -31,14 +31,21 @@ const Navbar: React.FC = () => {
     const newRole = currentRole === 'task_poster' ? 'task_doer' : 'task_poster';
     try {
       await switchRole(newRole);
-      toast.success(`Switched to ${newRole === 'task_poster' ? 'The Captain' : 'The Ace'} mode`);
+      toast.success(`Switched to ${newRole === 'task_poster' ? 'Captain' : 'Ace'} mode`);
+      // Navigate to the correct dashboard
+      if (newRole === 'task_poster') {
+        navigate('/captain/dashboard');
+      } else {
+        navigate('/ace/dashboard');
+      }
     } catch (error) {
       toast.error('Failed to switch role');
     }
   };
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
-  const displayRole = currentRole === 'task_poster' ? 'The Captain' : 'The Ace';
+  const displayRole = currentRole === 'task_poster' ? 'Captain' : currentRole === 'admin' ? 'Admin' : 'Ace';
+  const dashboardPath = currentRole === 'task_poster' ? '/captain/dashboard' : currentRole === 'admin' ? '/admin/moderation' : '/ace/dashboard';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -54,9 +61,17 @@ const Navbar: React.FC = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/tasks" className="text-muted-foreground hover:text-foreground transition-colors">
-              Browse Tasks
-            </Link>
+            {isAuthenticated && currentRole === 'task_doer' && (
+              <Link to="/ace/tasks" className="text-muted-foreground hover:text-foreground transition-colors">
+                Browse Tasks
+              </Link>
+            )}
+            {isAuthenticated && currentRole === 'task_poster' && (
+              <Link to="/captain/create-task" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <Plus className="w-4 h-4" />
+                Post Task
+              </Link>
+            )}
             <Link to="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </Link>
@@ -92,21 +107,25 @@ const Navbar: React.FC = () => {
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="cursor-pointer">
+                      <Link to={dashboardPath} className="cursor-pointer">
                         <LayoutDashboard className="w-4 h-4 mr-2" />
                         Dashboard
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSwitchRole} className="cursor-pointer">
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Switch to {currentRole === 'task_poster' ? 'The Ace' : 'The Captain'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings" className="cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
+                    {currentRole !== 'admin' && (
+                      <DropdownMenuItem onClick={handleSwitchRole} className="cursor-pointer">
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Switch to {currentRole === 'task_poster' ? 'Ace' : 'Captain'}
+                      </DropdownMenuItem>
+                    )}
+                    {currentRole === 'admin' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/verification" className="cursor-pointer">
+                          <Shield className="w-4 h-4 mr-2" />
+                          User Verification
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
                       <LogOut className="w-4 h-4 mr-2" />
