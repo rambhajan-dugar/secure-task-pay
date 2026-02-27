@@ -170,6 +170,12 @@ export function useSupabaseAuth() {
   const switchRole = async (newRole: AppRole) => {
     if (!state.user) throw new Error('Not authenticated');
 
+    // Only allow switching between non-privileged roles
+    const allowedRoles: AppRole[] = ['task_poster', 'task_doer'];
+    if (!allowedRoles.includes(newRole)) {
+      throw new Error('Cannot switch to privileged role');
+    }
+
     // Check if user already has this role
     if (!state.roles.includes(newRole)) {
       // Add the role
